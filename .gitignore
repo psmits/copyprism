@@ -1,4 +1,4 @@
-divers/*
+drivers/*
 auth/*
 *.log
 img/*
