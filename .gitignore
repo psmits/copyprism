@@ -1,5 +1,7 @@
 divers/*
+auth/*
 *.log
+img/*
 
 # Jupyter Notebook
 .ipynb_checkpoints
