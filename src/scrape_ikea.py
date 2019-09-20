@@ -104,4 +104,4 @@ out_tuple = list(zip(all_product_link, all_product_img, all_product_desc))
 out = pd.DataFrame(out_tuple, columns=['link', 'img_url', 'description'])
 
 my_dir = '/home/peter/Documents/projects/insight/copyprisim/results/'
-out.to_csv(my_dir + 'ikea.csv')
+out.to_csv(my_dir + 'ikea_2.csv')
