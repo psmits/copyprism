@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <title>File Upload Example</title>
+  </head>
+  <body>
+    <h2>Select a file to upload</h2>
+    <form action="http://localhost:5000/result" method="post" action="/" enctype="multipart/form-data">
+      <dl>
+        <p>
+        <input type="file" name="file" autocomplete="off" required>
+        </p>
+      </dl>
+      <p>
+      <input type="submit" value="Submit">
+      </p>
+    </form>
+  </body>
+</html>
