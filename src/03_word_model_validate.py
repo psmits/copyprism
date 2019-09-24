@@ -70,6 +70,8 @@ for ii in test_long:
     gen_a = gen.reshape(1, len(gen))
     ran_a = ran.reshape(1, len(ran))
 
+    # just using cosine similarity
+    # each vector is the tf-idf embedding
     ref2gen = cosine_similarity(ref_a, gen_a)[0][0]
 
     ref2ran = cosine_similarity(ref_a, ran_a)[0][0]
