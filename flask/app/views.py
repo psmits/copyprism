@@ -12,6 +12,7 @@ from keras.models import load_model
 from keras.preprocessing.sequence import pad_sequences
 from nltk.tokenize import RegexpTokenizer
 import string
+from itertools import compress
 # from nltk.tokenize import RegexpTokenizer
 # from keras.preprocessing.text import Tokenizer
 
@@ -64,6 +65,12 @@ def clean_text(input):
 
     # make lower case
     tokens = [word.lower() for word in tokens]
+
+    # remove tokens of length 1
+    tokens_len = [len(i) > 1 for i in tokens]
+    tokens_filter = list(compress(tokens, tokens_len))
+    tokens = tokens_filter
+
     return tokens
 
 

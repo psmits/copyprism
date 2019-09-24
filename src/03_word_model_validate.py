@@ -25,46 +25,54 @@ test_lines = test_sequences.split('\n')
 # make the testing data the right shape to test with
 ikea_test = pd.read_csv('../results/ikea_word_test.csv')
 
+# get word tokens from corpus
 test_desc_single = ' '.join(ikea_test.description)
-
 test_tokens = clean_text(test_desc_single)
 
-print('Total Tokens: %d' % len(test_tokens))
-print('Unique Tokens: %d' % len(set(test_tokens)))
-
-print('Total Sequences: %d' % len(test_lines))
-
-# explore other similarity metrics
-ikea_test = pd.read_csv('../results/ikea_word_test.csv')
+# seq length for text
 seq_length = len(test_lines[0].split()) - 1
 
 test_long = []
 for item in ikea_test.description:
-    if len(item.split()) > 50:
+    if len(item.split()) > 60:
         test_long.append(item)
 
+
+opens = []
+refs = []
+gens = []
+rans = []
 distances = []
-for ii in test_long:
-    exam = clean_text(test_long[1])
+for tl in test_long:
+    exam = clean_text(tl)
 
-    opener = exam[:50]
-    closer = exam[50:]
+    opener = exam[:50]  # seed text
+    opens.append(' '.join(opener))
 
-    # print(' '.join(closer))
+    closer = exam[50:]  # reference text
+    refs.append(' '.join(closer))
 
     # fill in rest of description
-    res = generate_seq(model, tokenizer, seq_length, opener, len(closer))
+    res = generate_seq(model,
+                       tokenizer,
+                       seq_length,
+                       ' '.join(opener),
+                       len(closer))
     # print(res)
 
     #
     rand_tokens = test_tokens
     random.shuffle(rand_tokens)
     rand_out = ' '.join(rand_tokens[:len(closer)])
+    gens.append(res)
+
+    # keep text snippets
 
     # to liked format
     ref = tokenizer.texts_to_matrix([' '.join(closer)], mode='tfidf')[0]
     gen = tokenizer.texts_to_matrix([res], mode='tfidf')[0]
     ran = tokenizer.texts_to_matrix([rand_out], mode='tfidf')[0]
+    rans.append(rand_out)
 
     ref_a = ref.reshape(1, len(ref))
     gen_a = gen.reshape(1, len(gen))
@@ -80,5 +88,10 @@ for ii in test_long:
     distances.append(ref2gen - ref2ran)
 
 
-dist_res = pd.DataFrame({'distance': distances})
-dist_res.to_csv('../results/test_distances.csv')
+output = pd.DataFrame(list(zip(opens, refs, gens, rans, distances)),
+                      columns=['start',
+                               'reference',
+                               'generated',
+                               'random',
+                               'distance'])
+output.to_csv('../results/text_comparison.csv')
