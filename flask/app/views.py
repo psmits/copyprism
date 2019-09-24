@@ -100,7 +100,7 @@ model = load_model(my_dir + '/results/ikea_word_model.h5')
 # load tokenizer
 tokenizer = pickle.load(open(my_dir + '/results/word_tokenizer.pkl', 'rb'))
 
-# bring in training sequences
+# bring in testing sequences
 in_filename = '/results/ikea_word_test_sequences.txt'
 doc = load_doc(my_dir + in_filename)
 lines = doc.split('\n')

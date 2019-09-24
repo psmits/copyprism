@@ -1,11 +1,3 @@
-# from google.colab import drive
-# drive.mount('/content/drive')
-import nltk
-# import tensorflow as tf
-# device_name = tf.test.gpu_device_name()
-# if device_name != '/device:GPU:0':
-#   raise SystemError('GPU device not found')
-# print('Found GPU at: {}'.format(device_name))
 from numpy import array
 from pickle import dump
 from keras.models import Sequential
@@ -13,29 +5,21 @@ from keras.layers import Dense, LSTM, Embedding
 from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint
 from keras.preprocessing.text import Tokenizer
-
-nltk.download('stopwords')
-
-
-def load_doc(filename):
-    # open the file as read only
-    file = open(filename, 'r')
-    # read all text
-    text = file.read()
-    # close the file
-    file.close()
-    return text
-
+from copyprisim_utilities import load_doc
 
 # load
-in_filename = 'ikea_train_sequences.txt'
+in_filename = 'ikea_word_train_sequences.txt'
 doc = load_doc(in_filename)
 lines = doc.split('\n')
 
+print('total sequences: %d' % len(lines))
 # code as integers
+
+# integer encode sequences of words
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(lines)
 sequences = tokenizer.texts_to_sequences(lines)
+dump(tokenizer, open('word_tokenizer.pkl', 'wb'))
 
 # vocabulary size
 vocab_size = len(tokenizer.word_index) + 1
@@ -48,10 +32,13 @@ seq_length = X.shape[1]
 
 # define model
 model = Sequential()
-model.add(Embedding(vocab_size, 50, input_length=seq_length))
-model.add(LSTM(100, return_sequences=True))
-model.add(LSTM(100))
-model.add(Dense(100, activation='relu'))
+model.add(Embedding(vocab_size, 100, input_length=seq_length))
+model.add(LSTM(100))  # , return_sequences=True))
+# You must set return_sequences=True when stacking LSTM layers so that the
+# second LSTM layer has a three-dimensional sequence input
+# model.add(Dropout(0.1))
+# model.add(LSTM(100))
+# model.add(Dense(100, activation='relu'))
 model.add(Dense(vocab_size, activation='softmax'))
 # print(model.summary())
 
@@ -63,14 +50,14 @@ model.compile(loss='categorical_crossentropy',
 # helpful checkpoints
 filepath = "word_model_weights_saved.hdf5"
 checkpoint = ModelCheckpoint(filepath,
-                             monitor='loss',
+                             monitor='loss',  # 'accuracy'
                              verbose=1,
                              save_best_only=True,
                              mode='min')
 desired_callbacks = [checkpoint]
 
 # fit model
-model.fit(X, y, epochs=10, batch_size=256, callbacks=desired_callbacks)
+model.fit(X, y, epochs=100, batch_size=256, callbacks=desired_callbacks)
 
 # save the model
 model.save('ikea_word_model.h5')
