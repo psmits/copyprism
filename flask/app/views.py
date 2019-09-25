@@ -13,8 +13,6 @@ from keras.preprocessing.sequence import pad_sequences
 from nltk.tokenize import RegexpTokenizer
 import string
 from itertools import compress
-# from nltk.tokenize import RegexpTokenizer
-# from keras.preprocessing.text import Tokenizer
 
 
 # auth so the whole thing runs
@@ -102,7 +100,6 @@ def generate_seq(model, tokenizer, seq_length, seed_text, n_words):
 
 
 # load model
-
 model = load_model(my_dir + '/results/ikea_word_model.h5')
 # load tokenizer
 tokenizer = pickle.load(open(my_dir + '/results/word_tokenizer.pkl', 'rb'))
@@ -117,7 +114,7 @@ seq_length = len(lines[0].split()) - 1
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_form():
-    return render_template('upload.html')
+    return render_template('index.html')
 
 
 @app.route('/result', methods=['GET', 'POST'])
@@ -145,7 +142,11 @@ def upload_file():
 
         # put into generator
         generated = generate_seq(model, tokenizer, seq_length, new_seed, 50)
+
+        full_filename = os.path.join(app.config['UPLOAD_FOLDER'],
+                                     filename)
         return render_template('result.html',
+                               uimg=full_filename,
                                lab=lab,
                                res=new_seed,
                                gen=generated)
