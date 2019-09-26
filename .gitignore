@@ -1,5 +1,6 @@
 drivers/*
 auth/*
+flask/auth/*
 *.log
 img/*
 results/*
