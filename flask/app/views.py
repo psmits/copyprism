@@ -36,7 +36,7 @@ model._make_predict_function()
 # load tokenizer
 tokenizer = pickle.load(open('./app/static/model/word_tokenizer.pkl', 'rb'))
 
-# bring in training sequences
+# bring in testing sequences
 in_filename = './app/static/model/ikea_word_test_sequences.txt'
 doc = load_doc(in_filename)
 lines = doc.split('\n')
@@ -83,11 +83,11 @@ def upload_file():
             new_seed = replace_nouns(seed_text, res)
 
             # put into generator
-            generated = generate_seq(model,
-                                     tokenizer,
-                                     seq_length,
-                                     new_seed,
-                                     50)
+            generated = generate_seq(model=model,
+                                     tokenizer=tokenizer,
+                                     seq_length=seq_length,
+                                     seed_text=new_seed,
+                                     n_words=50)
 
             return render_template('result.html',
                                    lab=lab,

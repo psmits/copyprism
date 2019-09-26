@@ -6,6 +6,10 @@ from itertools import compress, islice, cycle
 from google.cloud import vision
 import io
 
+nltk.download('stopwords')
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+
 
 def clean_text(input):
     '''clean text prior to analysis'''
