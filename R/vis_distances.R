@@ -23,9 +23,10 @@ valid_results <- read_csv('../results/text_comparison.csv')
 tt <- 
   valid_results %>%
   ggplot(aes(x = distance)) +
-  geom_histogram()
+  geom_histogram(fill = 'goldenrod') +
+  theme_light()
 
 ggsave(filename = '../results/distance_dist.png', 
        plot = tt, 
-       width = 6, 
+       width = 8, 
        height = 6)
