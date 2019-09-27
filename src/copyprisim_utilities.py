@@ -92,7 +92,6 @@ def generate_seq(model, tokenizer, seq_length, seed_text, n_words):
 
         # map predicted word index to word
         out_word = ''
-
         for word, index in tokenizer.word_index.items():
             if index == yhat:
                 out_word = word
