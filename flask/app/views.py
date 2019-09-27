@@ -12,8 +12,8 @@ from werkzeug.utils import secure_filename
 from flask import flash, request, redirect, render_template
 from flask import url_for, send_from_directory
 from app import app
-from copyprisim_utilities import detect_labels, load_doc, clean_text
-from copyprisim_utilities import replace_nouns, generate_seq
+from copyprism_utilities import detect_labels, load_doc, clean_text
+from copyprism_utilities import replace_nouns, generate_seq
 
 
 # auth so the whole thing runs
@@ -46,6 +46,7 @@ seq_length = len(lines[0].split()) - 1
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
+@app.route('/copyprism', methods=['GET', 'POST'])
 def upload_form():
     return render_template('upload.html')
 
@@ -60,7 +61,7 @@ def upload_file():
 
         file = request.files['file']
 
-        # if user does not select file, brower also submit an empty part w/o
+        # if user does not select file, browser submits an empty part w/o
         # filename
         if file.filename == '':
             flash('no selected file')
@@ -75,22 +76,26 @@ def upload_file():
             lab = ' '.join(lab)
             res = clean_text(lab)
 
-            # combine res with random seed text
-            # generate text from seed
-            seed_text = lines[randint(0, len(lines))]
-
-            # replace nouns of seed text with image tags
-            new_seed = replace_nouns(seed_text, res)
-
             # put into generator
-            generated = generate_seq(model=model,
-                                     tokenizer=tokenizer,
-                                     seq_length=seq_length,
-                                     seed_text=new_seed,
-                                     n_words=50)
+            seed_list = []
+            generated = []
+            for _ in range(0, 5):
+                # combine res with random seed text
+                seed_text = lines[randint(0, len(lines))]
+                # replace nouns of seed text with image tags
+                new_seed = replace_nouns(seed_text, res)
+                seed_list.append(new_seed)
+
+                # generate text
+                temp = generate_seq(model=model,
+                                    tokenizer=tokenizer,
+                                    seq_length=seq_length,
+                                    seed_text=new_seed,
+                                    n_words=50)
+                generated.append(temp)
 
             return render_template('result.html',
                                    lab=lab,
-                                   res=new_seed,
+                                   res=seed_list,
                                    gen=generated)
     return render_template('upload.html')
