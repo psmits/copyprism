@@ -5,14 +5,17 @@ import os
 # import sys
 # import io
 # import string
+# from random import randint
 from werkzeug.utils import secure_filename
 from flask import flash, request, redirect, render_template
 from flask import url_for, send_from_directory
 from app import app
-from copyprism_utilities import detect_labels, load_doc, clean_text
-from copyprism_utilities import sequence_gen
+import nltk
+from copyprism_utilities import detect_labels, load_doc  # , clean_text
+from copyprism_utilities import sequence_gen, replace_nouns
 import tensorflow as tf
 import gpt_2_simple as gpt2
+from itertools import compress
 
 
 # auth so the whole thing runs
@@ -43,8 +46,12 @@ graph = tf.get_default_graph()
 in_filename = './app/static/model/ikea_word_test_sequences.txt'
 doc = load_doc(in_filename)
 lines = doc.split('\n')
-
 seq_length = len(lines[0].split()) - 1
+
+# # bring in ikea product descriptions
+# in_filename = './app/static/model/ikea_2.csv'
+# ikea_cat = pd.read_csv(in_filename)
+# ikds = ikea_cat.description
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -77,26 +84,43 @@ def upload_file():
                 filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(filepath)
 
+                # google vision image labels
                 lab = detect_labels(filepath)
-                # res = ' '.join(lab)
-                # res = clean_text(lab)
+                lab = [x.lower() for x in lab]
 
+                # only nounds from lab
+                pos = nltk.pos_tag(lab)
+                tt = []
+                for ii in range(0, len(pos)):
+                    tt.append(pos[ii][1][0] == 'N')
+
+                lab = list(compress(lab, tt))
+
+                # given best lines...
+                # seed_text = lines[randint(0, len(lines))]
+                # new_seed = replace_nouns(seed_text, lab)
+                new_seed = lab[0]
+
+                # generate some text
                 text = sequence_gen(sess=sess,
-                                    prefix=lab[0].lower(),
+                                    prefix=new_seed,
                                     checkpoint_dir=chp_dir,
                                     length=50,
                                     temperature=0.7,
                                     nsamples=3,
                                     batch_size=1)
+
                 oo = []
                 for tt in text:
-                    oo.append(tt.replace('\n', ''))
+                    temp = tt.replace('\n', '')
+                    temp = tt.replace(new_seed, '')
+                    oo.append(temp)
 
                 text = oo
                 filename = 'upload/' + filename
 
                 return render_template('result.html',
                                        filepath=filename,
-                                       lab=lab[0],
+                                       lab=new_seed,
                                        gen=text)
         return render_template('upload.html')
