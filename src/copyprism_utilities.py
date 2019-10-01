@@ -5,6 +5,7 @@ from keras.preprocessing.sequence import pad_sequences
 from itertools import compress, islice, cycle
 from google.cloud import vision
 import io
+import gpt_2_simple as gpt2
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -92,6 +93,7 @@ def generate_seq(model, tokenizer, seq_length, seed_text, n_words):
 
         # map predicted word index to word
         out_word = ''
+
         for word, index in tokenizer.word_index.items():
             if index == yhat:
                 out_word = word
@@ -101,6 +103,27 @@ def generate_seq(model, tokenizer, seq_length, seed_text, n_words):
         in_text += ' ' + out_word
         result.append(out_word)
     return ' '.join(result)
+
+
+def sequence_gen(sess,
+                 prefix,
+                 checkpoint_dir,
+                 length=100,
+                 temperature=0.7,
+                 nsamples=1,
+                 batch_size=1):
+
+    text = gpt2.generate(sess,
+                         length=length,
+                         temperature=temperature,
+                         prefix=prefix,
+                         nsamples=nsamples,
+                         batch_size=batch_size,
+                         return_as_list=True,
+                         checkpoint_dir=checkpoint_dir,
+                         include_prefix=False)
+
+    return text
 
 
 def detect_labels(path):

@@ -4,6 +4,7 @@ flask/auth/*
 *.log
 img/*
 results/*
+flask/app/static/*
 
 # Jupyter Notebook
 .ipynb_checkpoints

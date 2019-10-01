@@ -5,15 +5,14 @@ import os
 # import sys
 # import io
 # import string
-import pickle
-from random import randint
-from keras.models import load_model
 from werkzeug.utils import secure_filename
 from flask import flash, request, redirect, render_template
 from flask import url_for, send_from_directory
 from app import app
 from copyprism_utilities import detect_labels, load_doc, clean_text
-from copyprism_utilities import replace_nouns, generate_seq
+from copyprism_utilities import sequence_gen
+import tensorflow as tf
+import gpt_2_simple as gpt2
 
 
 # auth so the whole thing runs
@@ -31,10 +30,14 @@ def allowed_file(filename):
 
 
 # load model
-model = load_model('./app/static/model/ikea_word_model.h5')
-model._make_predict_function()
-# load tokenizer
-tokenizer = pickle.load(open('./app/static/model/word_tokenizer.pkl', 'rb'))
+sess = gpt2.start_tf_sess()
+
+chp_dir = 'app/static/model/checkpoint'
+gpt2.load_gpt2(sess,
+               run_name='run1',
+               checkpoint_dir=chp_dir)
+graph = tf.get_default_graph()
+
 
 # bring in testing sequences
 in_filename = './app/static/model/ikea_word_test_sequences.txt'
@@ -53,49 +56,45 @@ def upload_form():
 
 @app.route('/result', methods=['GET', 'POST'])
 def upload_file():
-    if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('no file part')
-            return redirect(request.url)
+    global graph
+    with graph.as_default():
+        if request.method == 'POST':
+            # check if the post request has the file part
+            if 'file' not in request.files:
+                flash('no file part')
+                return redirect(request.url)
 
-        file = request.files['file']
+            file = request.files['file']
 
-        # if user does not select file, browser submits an empty part w/o
-        # filename
-        if file.filename == '':
-            flash('no selected file')
-            return redirect(request.url)
+            # if user does not select file, browser submits an empty part w/o
+            # filename
+            if file.filename == '':
+                flash('no selected file')
+                return redirect(request.url)
 
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
 
-            lab = detect_labels(filepath)
-            lab = ' '.join(lab)
-            res = clean_text(lab)
+                lab = detect_labels(filepath)
+                # res = ' '.join(lab)
+                # res = clean_text(lab)
 
-            # put into generator
-            seed_list = []
-            generated = []
-            for _ in range(0, 5):
-                # combine res with random seed text
-                seed_text = lines[randint(0, len(lines))]
-                # replace nouns of seed text with image tags
-                new_seed = replace_nouns(seed_text, res)
-                seed_list.append(new_seed)
+                text = sequence_gen(sess=sess,
+                                    prefix=lab[0].lower(),
+                                    checkpoint_dir=chp_dir,
+                                    length=50,
+                                    temperature=0.7,
+                                    nsamples=3,
+                                    batch_size=1)
+                oo = []
+                for tt in text:
+                    oo.append(tt.replace('\n', ''))
 
-                # generate text
-                temp = generate_seq(model=model,
-                                    tokenizer=tokenizer,
-                                    seq_length=seq_length,
-                                    seed_text=new_seed,
-                                    n_words=50)
-                generated.append(temp)
+                text = oo
 
-            return render_template('result.html',
-                                   lab=lab,
-                                   res=seed_list,
-                                   gen=generated)
-    return render_template('upload.html')
+                return render_template('result.html',
+                                       lab=lab[0],
+                                       gen=text)
+        return render_template('upload.html')
