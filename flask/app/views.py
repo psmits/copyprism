@@ -32,7 +32,7 @@ def allowed_file(filename):
 # load model
 sess = gpt2.start_tf_sess()
 
-chp_dir = 'app/static/model/checkpoint'
+chp_dir = './app/static/model/checkpoint'
 gpt2.load_gpt2(sess,
                run_name='run1',
                checkpoint_dir=chp_dir)
@@ -93,8 +93,10 @@ def upload_file():
                     oo.append(tt.replace('\n', ''))
 
                 text = oo
+                filename = 'upload/' + filename
 
                 return render_template('result.html',
+                                       filepath=filename,
                                        lab=lab[0],
                                        gen=text)
         return render_template('upload.html')
