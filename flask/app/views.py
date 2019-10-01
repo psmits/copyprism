@@ -99,7 +99,7 @@ def upload_file():
                 # given best lines...
                 # seed_text = lines[randint(0, len(lines))]
                 # new_seed = replace_nouns(seed_text, lab)
-                new_seed = lab[0]
+                new_seed = 'This is a ' + lab[0] + '.'
 
                 # generate some text
                 text = sequence_gen(sess=sess,
@@ -121,6 +121,7 @@ def upload_file():
 
                 return render_template('result.html',
                                        filepath=filename,
-                                       lab=new_seed,
+                                       lab=lab[0],
+                                       seed=new_seed,
                                        gen=text)
         return render_template('upload.html')

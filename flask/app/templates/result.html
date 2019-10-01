@@ -38,8 +38,11 @@
     <br/>
     <img src="{{ url_for('static', filename=filepath) }}" alt="User Image" height='200' width='200'>
 
-    <h3>Image labels (google vision): </h3>
+    <h3>First image label noun (google vision): </h3>
     {{ lab }}
+    <br/>
+    <h3>Seed text: </h3>
+    {{ seed }}
     <br/>
     <h3>Generated product copy options: </h3>
     {% for gen_element in gen %}
