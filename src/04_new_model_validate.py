@@ -42,7 +42,7 @@ refs = []
 gens = []
 rans = []
 for tl in test_long:
-    exam = clean_text(tl)
+    exam = tl.split()
 
     opener = exam[:50]  # seed text
     opens.append(' '.join(opener))
