@@ -12,6 +12,23 @@ nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 
 
+def detect_labels(path):
+    """Detects labels in LOCAL file."""
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.types.Image(content=content)
+
+    response = client.label_detection(image=image)
+    labels = response.label_annotations
+
+    # list of labels (ignoring uncertainty)
+    labels = [x.description for x in labels]
+    return labels
+
+
 def clean_text(input):
     '''clean text prior to analysis'''
     # tokenizer
@@ -126,18 +143,11 @@ def sequence_gen(sess,
     return text
 
 
-def detect_labels(path):
-    """Detects labels in LOCAL file."""
-    client = vision.ImageAnnotatorClient()
+def clean_seq_gen(text, to_rm):
+    oo = []
+    for tt in text:
+        temp = tt.replace('\n', '')
+        temp = tt.replace(to_rm, '')
+        oo.append(temp)
 
-    with io.open(path, 'rb') as image_file:
-        content = image_file.read()
-
-    image = vision.types.Image(content=content)
-
-    response = client.label_detection(image=image)
-    labels = response.label_annotations
-
-    # list of labels (ignoring uncertainty)
-    labels = [x.description for x in labels]
-    return labels
+    return oo

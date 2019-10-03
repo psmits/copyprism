@@ -11,8 +11,8 @@ from flask import flash, request, redirect, render_template
 from flask import url_for, send_from_directory
 from app import app
 import nltk
-from copyprism_utilities import detect_labels, load_doc  # , clean_text
-from copyprism_utilities import sequence_gen, replace_nouns
+from copyprism_utilities import detect_labels, load_doc, clean_seq_gen
+from copyprism_utilities import sequence_gen  # , replace_nouns
 import tensorflow as tf
 import gpt_2_simple as gpt2
 from itertools import compress
@@ -110,13 +110,8 @@ def upload_file():
                                     nsamples=3,
                                     batch_size=1)
 
-                oo = []
-                for tt in text:
-                    temp = tt.replace('\n', '')
-                    temp = tt.replace(new_seed, '')
-                    oo.append(temp)
+                text = clean_seq_gen(text=text, to_rm=new_seed)
 
-                text = oo
                 filename = 'upload/' + filename
 
                 return render_template('result.html',
